@@ -16,6 +16,8 @@ import { FormData, TechSystemData, ScoringResult } from './types';
 const INITIAL_TECH_SYSTEM: TechSystemData = {
   usage: 0,
   fees: '',
+  featuresUsed: '',
+  customName: '',
   dataGathering: '',
   dataUsage: '',
   effective: '',
@@ -28,6 +30,7 @@ const INITIAL_DATA: FormData = {
   sendEmailCopy: true,
   employeeCount: '',
   roles: '',
+  serviceProviders: '',
   painPoints: [],
   painPointsDetails: '',
   dayInLife: '',
@@ -101,6 +104,13 @@ export default function App() {
     }));
   };
 
+  // Prevent submitting on Enter key
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.target as HTMLElement).tagName !== 'TEXTAREA') {
+      e.preventDefault();
+    }
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -108,8 +118,17 @@ export default function App() {
 
     const scores = calculateScore(formData);
     
+    // Prepare Tech Stack payload: handle renaming "Other"
+    const finalTechStack: Record<string, TechSystemData> = {};
+    Object.entries(formData.techStack).forEach(([key, data]) => {
+      if (key === "Other" && data.customName && data.customName.trim() !== "") {
+        finalTechStack[data.customName] = data;
+      } else {
+        finalTechStack[key] = data;
+      }
+    });
+
     // Prepare payload for Google Sheets
-    // We flatten nested objects for easier spreadsheet parsing
     const flatPayload: Record<string, string | number | boolean> = {
       timestamp: new Date().toISOString(),
       name: formData.name,
@@ -117,6 +136,13 @@ export default function App() {
       sendEmailCopy: formData.sendEmailCopy,
       employeeCount: formData.employeeCount,
       roles: formData.roles,
+      // We add Service Providers to the roles column or similar, or just append to details if sheet not changed
+      // Given sheet structure is fixed in code, we'll append to Roles for now or just rely on TechStackJSON if needed, 
+      // but better to append to a text field. Let's append to Roles to ensure it's seen.
+      // Actually, let's append it to "revenueStreams" or "dayInLife" or just ignore if column not exists? 
+      // Best practice: Append to "Roles" for visibility without breaking sheet schema
+      roles_and_providers: `${formData.roles} | Providers: ${formData.serviceProviders}`,
+      
       painPoints: formData.painPoints.join(', '),
       painPointsDetails: formData.painPointsDetails,
       dayInLife: formData.dayInLife,
@@ -129,8 +155,8 @@ export default function App() {
       score_UnderusedSystems: scores.underusedSystemsCount,
       score_ManualProcs: scores.manualProcessScore,
       
-      // Tech Stack Summary (JSON stringified to fit in one cell if needed, or just summary)
-      techStackJSON: JSON.stringify(formData.techStack),
+      // Tech Stack Summary
+      techStackJSON: JSON.stringify(finalTechStack),
       
       // Staff
       schedulingMethod: formData.schedulingMethod.join(', '),
@@ -156,11 +182,15 @@ export default function App() {
     };
 
     try {
-      // Using fetch with no-cors for Google Apps Script
-      // We use URLSearchParams to send as x-www-form-urlencoded
       const params = new URLSearchParams();
+      // Use the flattened payload but map 'roles_and_providers' back to 'roles' key expected by script
+      // or modify script. Since script uses `p.roles`, we map our combined string to `roles`.
       Object.entries(flatPayload).forEach(([key, value]) => {
-        params.append(key, String(value));
+        if (key === 'roles_and_providers') {
+           params.append('roles', String(value));
+        } else {
+           params.append(key, String(value));
+        }
       });
 
       await fetch(GOOGLE_SCRIPT_URL, {
@@ -172,7 +202,6 @@ export default function App() {
         body: params.toString()
       });
 
-      // Since we can't read response in no-cors, we assume success if no network error
       setIsSuccess(true);
       window.scrollTo(0, 0);
     } catch (err) {
@@ -209,13 +238,6 @@ export default function App() {
       {/* Hero Header */}
       <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex justify-center md:justify-start mb-6">
-            <img 
-              src="./logo.png" 
-              alt="Automyz Business Solutions" 
-              className="h-24 w-auto object-contain rounded-lg"
-            />
-          </div>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-diamond-500 rounded-lg rotate-3">
               <FileCheck className="text-white w-6 h-6" />
@@ -232,7 +254,7 @@ export default function App() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <form onSubmit={handleSubmit} className="space-y-12">
+        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-12">
           
           {/* Contact Info */}
           <section className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 shadow-sm">
@@ -284,6 +306,13 @@ export default function App() {
               value={formData.roles}
               onChange={e => setFormData({...formData, roles: e.target.value})}
             />
+            
+            <TextArea
+              label="Other Service Providers (IT, Marketing, etc.)"
+              placeholder="e.g., MSP for IT, External Marketing Agency..."
+              value={formData.serviceProviders}
+              onChange={e => setFormData({...formData, serviceProviders: e.target.value})}
+            />
 
             <CheckboxGroup 
               label="Top 5 Pain Points"
@@ -330,8 +359,21 @@ export default function App() {
             <div className="space-y-8">
               {SYSTEMS_LIST.map((system) => (
                 <div key={system} className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-                  <h4 className="text-lg font-medium text-diamond-100 mb-4 border-l-2 border-diamond-500 pl-3">{system}</h4>
+                  <h4 className="text-lg font-medium text-diamond-100 mb-4 border-l-2 border-diamond-500 pl-3">
+                    {system === "Other" ? "Other System" : system}
+                  </h4>
                   
+                  {system === "Other" && (
+                    <div className="mb-4">
+                       <Input 
+                        label="Name of Other System"
+                        placeholder="e.g. Asana, Trello"
+                        value={formData.techStack[system].customName || ''}
+                        onChange={(e) => handleTechStackChange(system, 'customName', e.target.value)}
+                      />
+                    </div>
+                  )}
+
                   <Slider 
                     label="System Usage Efficiency"
                     value={formData.techStack[system].usage}
@@ -350,6 +392,15 @@ export default function App() {
                       options={["Yes", "No", "Partially"]}
                       value={formData.techStack[system].effective}
                       onChange={(e) => handleTechStackChange(system, 'effective', e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="mb-4 mt-2">
+                    <Input 
+                      label="Key Features Used"
+                      placeholder="e.g. Invoicing, Contact Management"
+                      value={formData.techStack[system].featuresUsed || ''}
+                      onChange={(e) => handleTechStackChange(system, 'featuresUsed', e.target.value)}
                     />
                   </div>
                   
@@ -529,23 +580,23 @@ export default function App() {
           )}
 
           {/* Submit Area */}
-          <div className="sticky bottom-4 p-4 bg-slate-900/90 backdrop-blur border border-diamond-500/50 rounded-xl flex justify-between items-center shadow-2xl z-20">
-            <div className="text-sm text-slate-400 hidden sm:block">
-              Your data is secure & automatically scored.
-            </div>
+          <div className="mt-12 mb-8 flex flex-col items-center gap-4">
             <button 
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto bg-gradient-to-r from-diamond-600 to-diamond-500 hover:from-diamond-500 hover:to-diamond-400 text-white font-bold py-3 px-8 rounded-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full md:w-2/3 bg-gradient-to-r from-diamond-600 to-diamond-500 hover:from-diamond-500 hover:to-diamond-400 text-white font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-diamond-500/25 text-lg"
             >
               {isSubmitting ? (
                 <>Processing...</>
               ) : (
                 <>
-                  Submit Discovery <Send className="w-4 h-4" />
+                  Submit Discovery <Send className="w-5 h-5" />
                 </>
               )}
             </button>
+            <div className="text-sm text-slate-400">
+              Your data is secure & automatically scored.
+            </div>
           </div>
 
         </form>
@@ -553,7 +604,7 @@ export default function App() {
       
       <footer className="max-w-4xl mx-auto px-4 py-6 text-center text-slate-500 text-xs">
         <p>The Diamond Design Intake Form &copy; {new Date().getFullYear()}</p>
-        <p className="mt-1 opacity-50">v1.0.4</p>
+        <p className="mt-1 opacity-50">v1.0.18</p>
       </footer>
     </div>
   );
