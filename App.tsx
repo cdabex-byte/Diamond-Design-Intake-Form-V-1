@@ -209,6 +209,13 @@ export default function App() {
       {/* Hero Header */}
       <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex justify-center md:justify-start mb-6">
+            <img 
+              src="./logo.png" 
+              alt="Automyz Business Solutions" 
+              className="h-24 w-auto object-contain rounded-lg"
+            />
+          </div>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-diamond-500 rounded-lg rotate-3">
               <FileCheck className="text-white w-6 h-6" />
@@ -543,6 +550,11 @@ export default function App() {
 
         </form>
       </main>
+      
+      <footer className="max-w-4xl mx-auto px-4 py-6 text-center text-slate-500 text-xs">
+        <p>The Diamond Design Intake Form &copy; {new Date().getFullYear()}</p>
+        <p className="mt-1 opacity-50">v1.0.3</p>
+      </footer>
     </div>
   );
 }
