@@ -1,4 +1,4 @@
-export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzZq5VYhZELdGyp-_aC2qCO1HuouvPq2S8C_1JEEdmMLiISDy85JSV1NxjqISpfMaaoTw/exec";
+export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxUenWZo8GtGWg24iWBPy1AH7mAAdPewcPzdqTS_-8a-uXBQ4FuE0WcINi7YaCwugPDRA/exec";
 
 export const SYSTEMS_LIST = [
   "Google Workspace",
