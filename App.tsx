@@ -553,7 +553,7 @@ export default function App() {
       
       <footer className="max-w-4xl mx-auto px-4 py-6 text-center text-slate-500 text-xs">
         <p>The Diamond Design Intake Form &copy; {new Date().getFullYear()}</p>
-        <p className="mt-1 opacity-50">v1.0.3</p>
+        <p className="mt-1 opacity-50">v1.0.4</p>
       </footer>
     </div>
   );
