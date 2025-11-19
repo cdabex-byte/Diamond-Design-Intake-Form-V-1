@@ -16,6 +16,7 @@ export interface FormData {
   sendEmailCopy: boolean;
   
   // Section 1: Business Overview
+  businessDescription: string; // New field
   employeeCount: string;
   roles: string;
   serviceProviders: string;
