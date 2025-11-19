@@ -136,13 +136,7 @@ export default function App() {
       sendEmailCopy: formData.sendEmailCopy,
       employeeCount: formData.employeeCount,
       roles: formData.roles,
-      // We add Service Providers to the roles column or similar, or just append to details if sheet not changed
-      // Given sheet structure is fixed in code, we'll append to Roles for now or just rely on TechStackJSON if needed, 
-      // but better to append to a text field. Let's append to Roles to ensure it's seen.
-      // Actually, let's append it to "revenueStreams" or "dayInLife" or just ignore if column not exists? 
-      // Best practice: Append to "Roles" for visibility without breaking sheet schema
-      roles_and_providers: `${formData.roles} | Providers: ${formData.serviceProviders}`,
-      
+      serviceProviders: formData.serviceProviders,
       painPoints: formData.painPoints.join(', '),
       painPointsDetails: formData.painPointsDetails,
       dayInLife: formData.dayInLife,
@@ -183,14 +177,9 @@ export default function App() {
 
     try {
       const params = new URLSearchParams();
-      // Use the flattened payload but map 'roles_and_providers' back to 'roles' key expected by script
-      // or modify script. Since script uses `p.roles`, we map our combined string to `roles`.
+      // Send all fields directly
       Object.entries(flatPayload).forEach(([key, value]) => {
-        if (key === 'roles_and_providers') {
-           params.append('roles', String(value));
-        } else {
-           params.append(key, String(value));
-        }
+         params.append(key, String(value));
       });
 
       await fetch(GOOGLE_SCRIPT_URL, {
@@ -239,11 +228,13 @@ export default function App() {
       <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-diamond-500 rounded-lg rotate-3">
-              <FileCheck className="text-white w-6 h-6" />
-            </div>
+            <img 
+              src="https://drive.google.com/thumbnail?id=1-bWZeJvG1ZMswMJRcLnNG18OT96IfwEg&sz=w400" 
+              alt="Automyz Business Solutions" 
+              className="h-16 w-auto object-contain rounded-lg"
+            />
             <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
-              The Diamond Design <span className="text-diamond-400">Intake Form</span>
+              Diamond Design <span className="text-diamond-400">Intake Form</span>
             </h1>
           </div>
           <p className="text-slate-400 text-sm max-w-xl">
@@ -604,7 +595,7 @@ export default function App() {
       
       <footer className="max-w-4xl mx-auto px-4 py-6 text-center text-slate-500 text-xs">
         <p>The Diamond Design Intake Form &copy; {new Date().getFullYear()}</p>
-        <p className="mt-1 opacity-50">v1.0.18</p>
+        <p className="mt-1 opacity-50">v1.0.22</p>
       </footer>
     </div>
   );
