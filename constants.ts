@@ -39,9 +39,9 @@ export const SCHEDULING_OPTIONS = [
 export const AI_PLATFORMS_OPTIONS = [
   "ChatGPT",
   "Claude",
+  "Gemini AI",
   "Midjourney",
   "Jasper",
-  "None",
   "Other"
 ];
 
