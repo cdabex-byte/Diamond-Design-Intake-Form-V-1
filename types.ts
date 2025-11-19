@@ -1,6 +1,8 @@
 export interface TechSystemData {
   usage: number;
   fees: string;
+  featuresUsed: string;
+  customName?: string;
   dataGathering: string;
   dataUsage: string;
   effective: string; // 'Yes' | 'No'
@@ -16,6 +18,7 @@ export interface FormData {
   // Section 1: Business Overview
   employeeCount: string;
   roles: string;
+  serviceProviders: string;
   painPoints: string[];
   painPointsDetails: string;
   dayInLife: string;
