@@ -28,6 +28,7 @@ const INITIAL_DATA: FormData = {
   name: '',
   email: '',
   sendEmailCopy: true,
+  businessDescription: '',
   employeeCount: '',
   roles: '',
   serviceProviders: '',
@@ -134,6 +135,7 @@ export default function App() {
       name: formData.name,
       email: formData.email,
       sendEmailCopy: formData.sendEmailCopy,
+      businessDescription: formData.businessDescription,
       employeeCount: formData.employeeCount,
       roles: formData.roles,
       serviceProviders: formData.serviceProviders,
@@ -284,6 +286,13 @@ export default function App() {
               <h3 className="text-xl font-semibold text-white">Business Overview</h3>
             </div>
 
+            <TextArea 
+              label="Describe Your Business in a few sentences"
+              placeholder="We are a boutique marketing agency specializing in..."
+              value={formData.businessDescription}
+              onChange={e => setFormData({...formData, businessDescription: e.target.value})}
+            />
+
             <Select 
               label="Number of Employees"
               options={EMPLOYEE_RANGES}
@@ -298,13 +307,6 @@ export default function App() {
               onChange={e => setFormData({...formData, roles: e.target.value})}
             />
             
-            <TextArea
-              label="Other Service Providers (IT, Marketing, etc.)"
-              placeholder="e.g., MSP for IT, External Marketing Agency..."
-              value={formData.serviceProviders}
-              onChange={e => setFormData({...formData, serviceProviders: e.target.value})}
-            />
-
             <CheckboxGroup 
               label="Top 5 Pain Points"
               options={PAIN_POINTS_OPTIONS}
@@ -336,6 +338,13 @@ export default function App() {
               placeholder="e.g., Online Sales ($500k), Wholesale ($200k). We rely heavily on Q4."
               value={formData.revenueStreams}
               onChange={e => setFormData({...formData, revenueStreams: e.target.value})}
+            />
+
+            <TextArea
+              label="Other Service Providers (IT, Marketing, etc.)"
+              placeholder="e.g., MSP for IT, External Marketing Agency..."
+              value={formData.serviceProviders}
+              onChange={e => setFormData({...formData, serviceProviders: e.target.value})}
             />
           </section>
 
@@ -595,7 +604,7 @@ export default function App() {
       
       <footer className="max-w-4xl mx-auto px-4 py-6 text-center text-slate-500 text-xs">
         <p>The Diamond Design Intake Form &copy; {new Date().getFullYear()}</p>
-        <p className="mt-1 opacity-50">v1.0.22</p>
+        <p className="mt-1 opacity-50">v1.0.23</p>
       </footer>
     </div>
   );
